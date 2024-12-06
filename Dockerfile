@@ -1,19 +1,18 @@
 # Set Node
-FROM node:18-alpine AS build
+FROM node:alpine
 
 # Set Work directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy files
-COPY . ./
+COPY . /usr/src/app
 
 #Install npm
 RUN npm install -g @angular/cli
 RUN npm install
 
-# Build
-RUN ng build
-
+#Expose Port
 EXPOSE 4200
 
-CMD ["ng serve"]
+# run serve command
+CMD ["ng", "serve", "--host", "0.0.0.0"]
