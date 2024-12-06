@@ -12,7 +12,7 @@ RUN npm install -g @angular/cli
 RUN npm install
 
 # Build
-RUN npm run build
+RUN ng build
 
 EXPOSE 4200
 
