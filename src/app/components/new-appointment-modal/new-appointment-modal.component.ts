@@ -25,6 +25,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { v4 as uuidv4 } from 'uuid';
 
 import { AppointmentsStore } from '../../store';
+import { makeIso } from '../../shared/utils';
 
 @Component({
   selector: 'app-new-appointment-modal',
@@ -84,8 +85,9 @@ export class NewAppointmentModalComponent implements OnInit {
       return;
     }
     const allAppointments = this.appointmentStore.getAppointments();
-    const selectedDateStr = date?.toISOString().split('T')[0];
-    const appointments = allAppointments[selectedDateStr!] || [];
+    const selectedDateStr = makeIso(date);
+
+    const appointments = allAppointments[selectedDateStr] || [];
 
     const startDate = new Date(
       date.getFullYear(),
@@ -124,6 +126,17 @@ export class NewAppointmentModalComponent implements OnInit {
     }
     const duration = (endDate.getTime() - startDate.getTime()) / 1000 / 60;
     const y = ((startDate.getHours() * 60 + startDate.getMinutes()) / 30) * 40;
+
+    console.log(selectedDateStr);
+    console.log({
+      id: uuidv4(),
+      title,
+      startDate,
+      endDate,
+      duration,
+      position: { x: 0, y },
+    });
+
     this.appointmentStore.addAppointment(selectedDateStr, {
       id: uuidv4(),
       title,

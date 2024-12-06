@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { IAppointment, TimeLine } from '../../shared/interfaces';
 import { AppointmentsStore, CalendarStore } from '../../store';
 import { TimeDoubleDigitPipe, DateTimeFormatterPipe } from '../../shared/pipes';
+import { makeIso } from '../../shared/utils';
 
 @Component({
   selector: 'app-timeline',
@@ -28,10 +29,10 @@ export class TimelineComponent {
 
   generateTimelines(): void {
     this.timelineTemplate = [];
-    const startOfDay = new Date(this.calendarStore.selectedDate());
+    const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const tomorrow = new Date();
-    tomorrow.setDate(this.calendarStore.selectedDate().getDate() + 1);
+    tomorrow.setDate(startOfDay.getDate() + 1);
     while (startOfDay.getDate() < tomorrow.getDate()) {
       this.timelineTemplate.push({
         hour: startOfDay.getHours(),
@@ -50,10 +51,7 @@ export class TimelineComponent {
   appointments = signal<Record<string, IAppointment[]>>({});
   appointmentsTemplate: Signal<IAppointment[]> = computed(() => {
     const date = this.calendarStore.selectedDate();
-    const dateKey = `${date.getFullYear()}-${(
-      '0' +
-      (date.getMonth() + 1)
-    ).slice(-2)}-${('0' + date.getDate()).slice(-2)}`;
+    const dateKey = makeIso(date);
     return this.appointments()[dateKey] || [];
   });
 
@@ -68,9 +66,7 @@ export class TimelineComponent {
   dragEnd($event: CdkDragEnd, appointmentId: string) {
     const appointments = this.appointmentsTemplate();
     const selectedDate = this.calendarStore.selectedDate();
-    const selectedDateValue = `${selectedDate.getFullYear()}-${(
-      '0' + selectedDate.getMonth()
-    ).slice(-2)}-${('0' + selectedDate.getDate()).slice(-2)}`;
+    const selectedDateValue = makeIso(selectedDate);
     const newPosition = $event.source.getFreeDragPosition();
     const apint = appointments.find((i) => i.id === appointmentId);
     if (apint) {
@@ -94,9 +90,7 @@ export class TimelineComponent {
 
   onAppointmentDelete(appointmentId: string): void {
     const selectedDate = this.calendarStore.selectedDate();
-    const selectedDateValue = `${selectedDate.getFullYear()}-${(
-      '0' + selectedDate.getMonth()
-    ).slice(-2)}-${('0' + selectedDate.getDate()).slice(-2)}`;
+    const selectedDateValue = makeIso(selectedDate);
     this.appointmentsStore.removeAppointment(selectedDateValue, appointmentId);
   }
 }
