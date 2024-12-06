@@ -27,7 +27,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { AddAppointment, AppointmentState } from '../../store';
 import { makeIso } from '../../shared/utils';
 import { Store } from '@ngxs/store';
-import { lastValueFrom, Observable } from 'rxjs';
+import { lastValueFrom, Observable, takeLast } from 'rxjs';
 import { IAppointment } from '../../shared/interfaces';
 
 @Component({
@@ -50,13 +50,7 @@ import { IAppointment } from '../../shared/interfaces';
 export class NewAppointmentModalComponent implements OnInit {
   private _snackBar = inject(MatSnackBar);
   allAppointments$: Observable<Record<string, IAppointment[]>>;
-
-  constructor(
-    private dialogRef: MatDialogRef<NewAppointmentModalComponent>,
-    private store: Store
-  ) {
-    this.allAppointments$ = this.store.select(AppointmentState.getAppointments);
-  }
+  allAppointments: Record<string, IAppointment[]> = {};
 
   endDateValidator(form: FormGroup): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -78,22 +72,31 @@ export class NewAppointmentModalComponent implements OnInit {
     title: new FormControl('', [Validators.required, Validators.minLength(3)]),
   });
 
+  constructor(
+    private dialogRef: MatDialogRef<NewAppointmentModalComponent>,
+    private store: Store
+  ) {
+    this.allAppointments$ = this.store.select(AppointmentState.getAppointments);
+    this.allAppointments$.subscribe((appointments) => {
+      this.allAppointments = appointments;
+    });
+  }
+
   ngOnInit(): void {
     this.appointmentForm
       .get('endTime')
       ?.addValidators(this.endDateValidator(this.appointmentForm));
   }
 
-  async onSubmit() {
+  onSubmit(): void {
     const { date, startTime, endTime, title } = this.appointmentForm.value;
     if (!date || !startTime || !endTime || !title) {
       this._snackBar.open('Some fields are empty!', 'Ok');
       return;
     }
-    const allAppointments = await lastValueFrom(this.allAppointments$);
-    const selectedDateStr = makeIso(date);
 
-    const appointments = allAppointments[selectedDateStr] || [];
+    const selectedDateStr = makeIso(date);
+    const appointments = this.allAppointments[selectedDateStr] || [];
 
     const startDate = new Date(
       date.getFullYear(),
@@ -133,27 +136,21 @@ export class NewAppointmentModalComponent implements OnInit {
     const duration = (endDate.getTime() - startDate.getTime()) / 1000 / 60;
     const y = ((startDate.getHours() * 60 + startDate.getMinutes()) / 30) * 40;
 
-    console.log(selectedDateStr);
-    console.log({
-      id: uuidv4(),
-      title,
-      startDate,
-      endDate,
-      duration,
-      position: { x: 0, y },
-    });
-
     // Add Ngxs
-    this.store.dispatch(
-      new AddAppointment(selectedDateStr, {
-        id: uuidv4(),
-        title,
-        startDate,
-        endDate,
-        duration,
-        position: { x: 0, y },
-      })
-    );
+    this.store
+      .dispatch(
+        new AddAppointment(selectedDateStr, {
+          id: uuidv4(),
+          title,
+          startDate,
+          endDate,
+          duration,
+          position: { x: 0, y },
+        })
+      )
+      .subscribe((f) => {
+        console.log(f);
+      });
 
     this.dialogRef.close();
   }
