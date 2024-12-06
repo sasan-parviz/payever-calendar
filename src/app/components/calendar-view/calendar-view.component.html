@@ -1,6 +1,6 @@
 <div class="w-96 bg-slate-400 p-4 flex flex-col m-10 rounded-md shadow-lg">
   <h2 class="text-center font-bold text-sm text-slate-800">
-    {{ calendarStore.selectedDate() | dateFormatter }}
+    {{ calendarService.selectedDate() | dateFormatter }}
   </h2>
   <div class="w-full flex flex-row">
     <mat-form-field class="m-2">
@@ -36,7 +36,7 @@
       </tr>
     </thead>
     <tbody class="text-center text-gray-950">
-      @for (row of calendarStore.calendarRows(); let rIndex = $index; track
+      @for (row of calendarService.calendarRows(); let rIndex = $index; track
       rIndex) {
       <tr>
         @for (day of row; let dIndex = $index; track dIndex) {
@@ -47,7 +47,7 @@
             (click)="dateChanges(day.value)"
             [ngClass]="{
               'calendar-item-active':
-                calendarStore.selectedDate().getDate() === day.value.getDate()
+                calendarService.selectedDate().getDate() === day.value.getDate()
             }"
           >
             {{ day?.label || "" }}

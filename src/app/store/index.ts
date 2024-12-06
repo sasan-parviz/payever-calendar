@@ -1,2 +1,1 @@
-export * from './appointments.store';
-export * from './calendar.store';
+export * from './appointment';

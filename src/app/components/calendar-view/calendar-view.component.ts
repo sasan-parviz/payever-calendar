@@ -5,7 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 
-import { CalendarStore } from '../../store';
+import { CalendarService } from '../../core/services';
 import { Month } from '../../shared/interfaces';
 import { DateFormatterPipe } from '../../shared/pipes';
 
@@ -40,17 +40,17 @@ export class CalendarViewComponent {
     { value: 11, label: 'Dec' },
   ];
 
-  calendarStore: CalendarStore;
+  calendarService: CalendarService;
   constructor() {
-    this.calendarStore = inject(CalendarStore);
-    this.month = signal(this.calendarStore.month());
-    this.year = signal(this.calendarStore.year());
+    this.calendarService = inject(CalendarService);
+    this.month = signal(this.calendarService.month());
+    this.year = signal(this.calendarService.year());
   }
 
   dateChanges(date?: Date) {
-    const newDate = new Date(date || this.calendarStore.selectedDate());
+    const newDate = new Date(date || this.calendarService.selectedDate());
     newDate.setFullYear(this.year());
     newDate.setMonth(this.month());
-    this.calendarStore.setSelectedDate(newDate);
+    this.calendarService.setSelectedDate(newDate);
   }
 }

@@ -1,10 +1,10 @@
 import { computed, Injectable, signal } from '@angular/core';
 
-import { CalendarDay } from '../shared/interfaces';
-import { chunkArray } from '../shared/utils';
+import { CalendarDay } from '../../shared/interfaces';
+import { chunkArray } from '../../shared/utils';
 
 @Injectable({ providedIn: 'root' })
-export class CalendarStore {
+export class CalendarService {
   selectedDate = signal(new Date());
   month = computed(() => this.selectedDate().getMonth());
   year = computed(() => this.selectedDate().getFullYear());

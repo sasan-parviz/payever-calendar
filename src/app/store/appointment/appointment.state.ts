@@ -1,10 +1,16 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { IAppointment } from '../shared/interfaces/appointment.model';
+import { Action, Selector, State, StateContext } from '@ngxs/store';
 
-@Injectable({ providedIn: 'root' })
-export class AppointmentsStore {
-  private appointments = new BehaviorSubject<Record<string, IAppointment[]>>({
+import { IAppointment } from '../../shared/interfaces';
+import {
+  AddAppointment,
+  RemoveAppointment,
+  SetAppointments,
+} from './appointment.action';
+
+@State<Record<string, IAppointment[]>>({
+  name: 'appointments',
+  defaults: {
     '2024-12-06': [
       {
         id: '123123-123123-v3123-dhaskd',
@@ -73,36 +79,42 @@ export class AppointmentsStore {
         position: { x: 0, y: 240 },
       },
     ],
-  });
-  appointments$ = this.appointments.asObservable();
-
-  getAppointments(): Record<string, IAppointment[]> {
-    return this.appointments.value;
+  },
+})
+@Injectable()
+export class AppointmentState {
+  @Selector()
+  public static getAppointments(state: Record<string, IAppointment[]>) {
+    return state;
   }
 
-  setAppointments(date: string, appointments: IAppointment[]) {
-    this.appointments.next({
-      ...this.appointments.value,
-      [date]: appointments,
-    });
+  @Action(SetAppointments)
+  public setAppointments(
+    ctx: StateContext<Record<string, IAppointment[]>>,
+    { date, appointments }: SetAppointments
+  ) {
+    const state = ctx.getState();
+    return ctx.patchState({ ...state, [date]: appointments });
   }
 
-  addAppointment(date: string, appointment: IAppointment) {
-    const currentAppointments = this.appointments.value[date] || [];
+  @Action(AddAppointment)
+  public addAppointment(
+    ctx: StateContext<Record<string, IAppointment[]>>,
+    { date, appointment }: AddAppointment
+  ) {
+    const state = ctx.getState();
+    const currentAppointments = state[date] || [];
     currentAppointments.push(appointment);
-    this.appointments.next({
-      ...this.appointments.value,
-      [date]: currentAppointments,
-    });
+    return ctx.patchState({ ...state, [date]: currentAppointments });
   }
 
-  removeAppointment(date: string, appointmentId: string) {
-    const otherAppointments = this.appointments.value[date].filter(
-      (i) => i.id !== appointmentId
-    );
-    this.appointments.next({
-      ...this.appointments.value,
-      [date]: otherAppointments,
-    });
+  @Action(RemoveAppointment)
+  public removeAppointment(
+    ctx: StateContext<Record<string, IAppointment[]>>,
+    { date, appointmentId }: RemoveAppointment
+  ) {
+    const state = ctx.getState();
+    const otherAppointments = state[date].filter((i) => i.id !== appointmentId);
+    return ctx.patchState({ ...state, [date]: otherAppointments });
   }
 }

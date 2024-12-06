@@ -2,11 +2,18 @@ import { Component, computed, Signal, signal } from '@angular/core';
 import { CdkDrag, CdkDragEnd } from '@angular/cdk/drag-drop';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { Store } from '@ngxs/store';
+import { Observable } from 'rxjs';
 
 import { IAppointment, TimeLine } from '../../shared/interfaces';
-import { AppointmentsStore, CalendarStore } from '../../store';
+import {
+  AppointmentState,
+  RemoveAppointment,
+  SetAppointments,
+} from '../../store';
 import { TimeDoubleDigitPipe, DateTimeFormatterPipe } from '../../shared/pipes';
 import { makeIso } from '../../shared/utils';
+import { CalendarService } from '../../core/services';
 
 @Component({
   selector: 'app-timeline',
@@ -21,10 +28,11 @@ import { makeIso } from '../../shared/utils';
   styleUrl: './timeline.component.css',
 })
 export class TimelineComponent {
-  constructor(
-    private calendarStore: CalendarStore,
-    private appointmentsStore: AppointmentsStore
-  ) {}
+  allAppointments$: Observable<Record<string, IAppointment[]>>;
+  constructor(private calendarService: CalendarService, private store: Store) {
+    this.allAppointments$ = this.store.select(AppointmentState.getAppointments);
+  }
+
   timelineTemplate: TimeLine[] = [];
 
   generateTimelines(): void {
@@ -50,7 +58,7 @@ export class TimelineComponent {
 
   appointments = signal<Record<string, IAppointment[]>>({});
   appointmentsTemplate: Signal<IAppointment[]> = computed(() => {
-    const date = this.calendarStore.selectedDate();
+    const date = this.calendarService.selectedDate();
     const dateKey = makeIso(date);
     return this.appointments()[dateKey] || [];
   });
@@ -58,14 +66,15 @@ export class TimelineComponent {
   ngOnInit(): void {
     this.generateTimelines();
 
-    this.appointmentsStore.appointments$.subscribe((appointments) => {
+    // Subscribe to Ngxs Select
+    this.allAppointments$.subscribe((appointments) => {
       this.appointments.set(appointments);
     });
   }
 
   dragEnd($event: CdkDragEnd, appointmentId: string) {
     const appointments = this.appointmentsTemplate();
-    const selectedDate = this.calendarStore.selectedDate();
+    const selectedDate = this.calendarService.selectedDate();
     const selectedDateValue = makeIso(selectedDate);
     const newPosition = $event.source.getFreeDragPosition();
     const apint = appointments.find((i) => i.id === appointmentId);
@@ -85,12 +94,16 @@ export class TimelineComponent {
       endDate.setMinutes(apint.startDate.getMinutes() + apint.duration);
       apint.endDate = endDate;
     }
-    this.appointmentsStore.setAppointments(selectedDateValue, appointments);
+    // Added Ngxs
+    this.store.dispatch(new SetAppointments(selectedDateValue, appointments));
   }
 
   onAppointmentDelete(appointmentId: string): void {
-    const selectedDate = this.calendarStore.selectedDate();
+    const selectedDate = this.calendarService.selectedDate();
     const selectedDateValue = makeIso(selectedDate);
-    this.appointmentsStore.removeAppointment(selectedDateValue, appointmentId);
+    // Added Ngxs
+    this.store.dispatch(
+      new RemoveAppointment(selectedDateValue, appointmentId)
+    );
   }
 }

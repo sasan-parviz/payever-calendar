@@ -8,9 +8,14 @@ import {
 } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import {
+  HTTP_INTERCEPTORS,
   provideHttpClient,
   withInterceptorsFromDi,
 } from '@angular/common/http';
+import { provideStore } from '@ngxs/store';
+
+import { AppointmentState } from './store/appointment';
+import { RandomLogInterceptor } from './core/interceptors';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,5 +24,11 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptorsFromDi()),
+    provideStore([AppointmentState]),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: RandomLogInterceptor,
+      multi: true,
+    },
   ],
 };

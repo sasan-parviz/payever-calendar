@@ -24,8 +24,11 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { v4 as uuidv4 } from 'uuid';
 
-import { AppointmentsStore } from '../../store';
+import { AddAppointment, AppointmentState } from '../../store';
 import { makeIso } from '../../shared/utils';
+import { Store } from '@ngxs/store';
+import { lastValueFrom, Observable } from 'rxjs';
+import { IAppointment } from '../../shared/interfaces';
 
 @Component({
   selector: 'app-new-appointment-modal',
@@ -46,6 +49,14 @@ import { makeIso } from '../../shared/utils';
 })
 export class NewAppointmentModalComponent implements OnInit {
   private _snackBar = inject(MatSnackBar);
+  allAppointments$: Observable<Record<string, IAppointment[]>>;
+
+  constructor(
+    private dialogRef: MatDialogRef<NewAppointmentModalComponent>,
+    private store: Store
+  ) {
+    this.allAppointments$ = this.store.select(AppointmentState.getAppointments);
+  }
 
   endDateValidator(form: FormGroup): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -67,24 +78,19 @@ export class NewAppointmentModalComponent implements OnInit {
     title: new FormControl('', [Validators.required, Validators.minLength(3)]),
   });
 
-  constructor(
-    private dialogRef: MatDialogRef<NewAppointmentModalComponent>,
-    private appointmentStore: AppointmentsStore
-  ) {}
-
   ngOnInit(): void {
     this.appointmentForm
       .get('endTime')
       ?.addValidators(this.endDateValidator(this.appointmentForm));
   }
 
-  onSubmit(): void {
+  async onSubmit() {
     const { date, startTime, endTime, title } = this.appointmentForm.value;
     if (!date || !startTime || !endTime || !title) {
       this._snackBar.open('Some fields are empty!', 'Ok');
       return;
     }
-    const allAppointments = this.appointmentStore.getAppointments();
+    const allAppointments = await lastValueFrom(this.allAppointments$);
     const selectedDateStr = makeIso(date);
 
     const appointments = allAppointments[selectedDateStr] || [];
@@ -137,14 +143,17 @@ export class NewAppointmentModalComponent implements OnInit {
       position: { x: 0, y },
     });
 
-    this.appointmentStore.addAppointment(selectedDateStr, {
-      id: uuidv4(),
-      title,
-      startDate,
-      endDate,
-      duration,
-      position: { x: 0, y },
-    });
+    // Add Ngxs
+    this.store.dispatch(
+      new AddAppointment(selectedDateStr, {
+        id: uuidv4(),
+        title,
+        startDate,
+        endDate,
+        duration,
+        position: { x: 0, y },
+      })
+    );
 
     this.dialogRef.close();
   }

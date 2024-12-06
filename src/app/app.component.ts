@@ -8,13 +8,6 @@ import { RandomLogInterceptor } from './core/interceptors';
 
 @Component({
   selector: 'app-root',
-  providers: [
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: RandomLogInterceptor,
-      multi: true,
-    },
-  ],
   imports: [
     CommonModule,
     RouterOutlet,
