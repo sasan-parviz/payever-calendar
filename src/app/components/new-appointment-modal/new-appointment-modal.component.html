@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>Add new Appointment</h2>
+<form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content class="mat-typography">
+    <div class="flex flex-col">
+      <mat-form-field>
+        <mat-label>Appointment Date</mat-label>
+        <input matInput [matDatepicker]="datepicker" formControlName="date" />
+        <mat-datepicker #datepicker />
+        <mat-datepicker-toggle [for]="datepicker" matSuffix />
+      </mat-form-field>
+
+      <div class="flex flex-row">
+        <mat-form-field>
+          <mat-label>Appointment Start Time</mat-label>
+          <input
+            matInput
+            [matTimepicker]="timepicker"
+            formControlName="startTime"
+          />
+          <mat-timepicker #timepicker />
+          <mat-timepicker-toggle [for]="timepicker" matSuffix />
+        </mat-form-field>
+
+        <mat-form-field class="ml-4">
+          <mat-label>Appointment End Time</mat-label>
+          <input
+            matInput
+            [matTimepicker]="timepicker2"
+            formControlName="endTime"
+          />
+          <mat-timepicker #timepicker2 />
+          <mat-timepicker-toggle [for]="timepicker2" matSuffix />
+        </mat-form-field>
+      </div>
+      <mat-form-field class="example-full-width">
+        <mat-label>Appointment Title</mat-label>
+        <input
+          matInput
+          placeholder="Meeting with payover team"
+          formControlName="title"
+        />
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-button type="submit" cdkFocusInitial>Save</button>
+  </mat-dialog-actions>
+</form>

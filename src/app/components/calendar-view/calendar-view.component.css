@@ -1,0 +1,6 @@
+.calendar-item {
+  @apply flex m-auto justify-center items-center cursor-pointer w-8 h-8 rounded-full hover:bg-slate-500 transition-all text-slate-900;
+}
+.calendar-item-active {
+  @apply bg-slate-300;
+}

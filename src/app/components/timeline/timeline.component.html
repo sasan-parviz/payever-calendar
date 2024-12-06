@@ -1,0 +1,55 @@
+<div
+  class="w-full flex flex-col bg-slate-100 absolute shadow-xl border-t-[1px] border-b-[1px] border-solid border-gray-300"
+>
+  @for (line of timelineTemplate; track line.hour + ":" + line.minutes) {
+  <div
+    class="w-full h-10 bg-gray-200 border-b-[1px] border-solid border-gray-300"
+  >
+    <div class="flex flex-row items-center">
+      <div class="w-20 text-sm font-bold text-center text-gray-600 mt-[-10px]">
+        <span class="bg-gray-200 px-1">
+          {{ line.hour | timeDoubleDigit }}:{{ line.minutes | timeDoubleDigit }}
+        </span>
+      </div>
+      <div class="flex-grow"></div>
+    </div>
+  </div>
+  }
+</div>
+<div class="appointments-list">
+  @for (appointment of appointmentsTemplate(); track appointment.id;) {
+  <div
+    cdkDrag
+    cdkDragLockAxis="y"
+    [cdkDragFreeDragPosition]="appointment.position"
+    (cdkDragEnded)="dragEnd($event, appointment.id)"
+    cdkDragBoundary=".appointments-list"
+    class="w-full z-50 appointment-box absolute"
+  >
+    <div
+      class="flex flex-row items-center ml-20 mr-10 shadow px-8 rounded-md bg-green-300 cursor-move"
+      style="height: {{ (appointment.duration / 30) * 40 }}px;"
+    >
+      <div class="text-sm font-bold text-green-900">
+        {{ appointment.title }}
+      </div>
+      <div class="flex-grow"></div>
+      <div class="text-sm font-black text-gray-700">
+        {{ appointment.startDate | dateTimeFormatter }}
+        -
+        {{ appointment.endDate | dateTimeFormatter }}
+      </div>
+      <div class="flex-grow"></div>
+      <div>
+        <button
+          (click)="onAppointmentDelete(appointment.id)"
+          mat-mini-fab
+          aria-label="Remove"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

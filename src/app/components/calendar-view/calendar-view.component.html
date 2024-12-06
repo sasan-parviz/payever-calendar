@@ -1,0 +1,62 @@
+<div class="w-96 bg-slate-400 p-4 flex flex-col m-10 rounded-md shadow-lg">
+  <h2 class="text-center font-bold text-sm text-slate-800">
+    {{ calendarStore.selectedDate() | dateFormatter }}
+  </h2>
+  <div class="w-full flex flex-row">
+    <mat-form-field class="m-2">
+      <mat-label>Month</mat-label>
+      <mat-select [(value)]="month" (selectionChange)="dateChanges()">
+        @for (month of months; track month.value) {
+        <mat-option [value]="month.value">{{ month.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="m-2">
+      <mat-label>Year</mat-label>
+      <input
+        matInput
+        type="number"
+        [(ngModel)]="year"
+        (change)="dateChanges()"
+      />
+    </mat-form-field>
+  </div>
+
+  <table class="w-full select-none">
+    <thead class="text-center text-slate-700 font-bold">
+      <tr>
+        <td>Su</td>
+        <td>Mo</td>
+        <td>Tu</td>
+        <td>We</td>
+        <td>Th</td>
+        <td>Fr</td>
+        <td>Sa</td>
+      </tr>
+    </thead>
+    <tbody class="text-center text-gray-950">
+      @for (row of calendarStore.calendarRows(); let rIndex = $index; track
+      rIndex) {
+      <tr>
+        @for (day of row; let dIndex = $index; track dIndex) {
+        <td>
+          @if (day && day.value) {
+          <div
+            class="calendar-item"
+            (click)="dateChanges(day.value)"
+            [ngClass]="{
+              'calendar-item-active':
+                calendarStore.selectedDate().getDate() === day.value.getDate()
+            }"
+          >
+            {{ day?.label || "" }}
+          </div>
+          }
+        </td>
+        }
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
